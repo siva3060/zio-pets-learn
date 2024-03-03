@@ -1,44 +1,33 @@
+import config.QuillContext.{query, run}
 import models.Pet
-import zio.{Task, ZIO, ZLayer}
+import zio.{Task, ZEnvironment, ZIO, ZLayer}
 
+import java.sql.SQLException
 import java.util.UUID
+import javax.sql.DataSource
 
 trait PetService {
   def savePet(name:String,species:String,ownerId:UUID):Task[Pet]
-  def getAllPets():Task[List[Pet]]
+  def getAllPets(): ZIO[DataSource,SQLException,List[Pet]]
   def getPetById(petId:UUID):Task[Option[Pet]]
   def deletePetById(petId:UUID):Task[Unit]
 }
 
-final case class PetServiceLive() extends PetService {
-  
-  val pet1 = Pet(UUID.randomUUID(),"Fluffy","cat",UUID.randomUUID())
-  val pet2 = Pet(UUID.randomUUID(),"Strikey","dog",UUID.randomUUID())
-  val pet3 = Pet(UUID.randomUUID(),"Goldy","fist",UUID.randomUUID())
+final case class PetServiceLive(dataSource: DataSource) extends PetService {
 
-  val petDatabase:Map[UUID,Pet] = Map(
-       (pet1.petId -> pet1),
-       (pet2.petId -> pet2),
-       (pet3.petId -> pet3));
+  override def savePet(name: String, species: String, ownerId: UUID): Task[Pet] = ???
 
+  override def getAllPets(): ZIO[DataSource,SQLException,List[Pet]] =
+                run(query[Pet]).provideEnvironment(ZEnvironment(dataSource))
 
+  override def getPetById(petId: UUID): Task[Option[Pet]] = ???
 
-  override def savePet(name: String, species: String, ownerId: UUID): Task[Pet] =
-    ZIO.attempt{
-      val newPet = Pet(UUID.randomUUID(),name,species,UUID.randomUUID())
-      petDatabase + (newPet.petId -> newPet)
-      newPet
-    }
-
-  override def getAllPets(): Task[List[Pet]] =
-    ZIO.succeed(petDatabase.values.toList)
-
-  override def getPetById(petId: UUID): Task[Option[Pet]] =
-    ZIO.succeed(Some(petDatabase(petId)))
-
-  override def deletePetById(petId: UUID): Task[Unit] =
-    ZIO.attempt(petDatabase - petId).unit
+  override def deletePetById(petId: UUID): Task[Unit] = ???
 }
 object PetService {
-  val live:ZLayer[Any,Nothing,PetService] = ZLayer.succeed(PetServiceLive())
+  val live:ZLayer[DataSource,Nothing,PetService] =  ZLayer{
+    for{
+      datasource <- ZIO.service[DataSource]
+    } yield PetServiceLive(datasource)
+  }
 }

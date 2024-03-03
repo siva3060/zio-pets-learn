@@ -6,5 +6,5 @@ object Main extends ZIOAppDefault {
     (for{
       pets <- ZIO.serviceWithZIO[PetService](_.getAllPets())
       _ <- printLine(pets)
-    } yield ()).provide(PetService.live)
+    } yield ()).provide(PetService.live,config.QuillContext.dataSourceLayer)
 }
