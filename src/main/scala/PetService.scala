@@ -1,4 +1,4 @@
-import config.QuillContext.{query, run}
+import config.QuillContext._
 import models.Pet
 import zio.{Task, ZEnvironment, ZIO, ZLayer}
 
