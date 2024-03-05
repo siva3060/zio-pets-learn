@@ -7,9 +7,9 @@ import zio.ZLayer
 
 import javax.sql.DataSource
 
-object QuillContext extends H2ZioJdbcContext(UpperCase){
+object QuillContext extends H2ZioJdbcContext(SnakeCase){
 
-  val dburl = "jdbc:h2:./test"
+  val dburl = "jdbc:h2:tcp://localhost/./test"
   val userName = "sa"
   val password = "password"
 
@@ -24,7 +24,6 @@ object QuillContext extends H2ZioJdbcContext(UpperCase){
 
 
   //added Schema Meta
-  implicit val petSchemaMeta: SchemaMeta[Pet] = schemaMeta[Pet]("pets")
-
+  implicit val petSchemaMeta: SchemaMeta[Pet] = schemaMeta[Pet]("PETS")
 
 }
